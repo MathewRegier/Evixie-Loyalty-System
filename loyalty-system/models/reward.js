@@ -5,7 +5,7 @@ const rewardSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
   pointsRequired: { type: Number, required: true },
-  discount: { type: Number, required: true } // For discount percentage
+  discount: { type: Number, required: true }
 });
 
 module.exports = mongoose.model('Reward', rewardSchema);

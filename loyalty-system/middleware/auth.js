@@ -1,18 +1,32 @@
 const jwt = require('jsonwebtoken');
 
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    
-    if (token == null) return res.sendStatus(401); // No token provided
+function authenticateToken(req, res, next) {
+  const token = req.header('Authorization') && req.header('Authorization').split(' ')[1];
+  if (!token) return res.status(401).send({ message: 'Access denied' });
 
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) return res.sendStatus(401); // Invalid or expired token
+  try {
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = verified;
+    next();
+  } catch (error) {
+    res.status(400).send({ message: 'Invalid token' });
+  }
+}
 
-        req.user = user;
-        console.log('Authenticated User:', user); // Debug log
-        next();
-    });
-};
+function checkPermission(permission) {
+  return (req, res, next) => {
+    // Skip permission check for company logins
+    if (req.user.userType === 'company') {
+      return next();
+    }
 
-module.exports = authenticateToken;
+    // Check permissions for staff logins
+    if (req.user.permissions && req.user.permissions[permission]) {
+      next();
+    } else {
+      res.status(403).send({ message: 'Permission denied' });
+    }
+  };
+}
+
+module.exports = { authenticateToken, checkPermission };

@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Company = require('../models/company');
 const Staff = require('../models/staff');
-const authenticateToken = require('../middleware/auth'); // Add this line
+const { authenticateToken } = require('../middleware/auth');
 const router = express.Router();
 
 // Register company
@@ -50,11 +50,13 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// Update points per dollar rate
 router.put('/points-per-dollar', authenticateToken, async (req, res) => {
     try {
         const { pointsPerDollar } = req.body;
-        const company = await Company.findById(req.user.id);
+        const companyId = req.user.id; // Extract companyId from the token
 
+        const company = await Company.findById(companyId);
         if (!company) {
             return res.status(404).send({ message: 'Company not found' });
         }
@@ -62,9 +64,10 @@ router.put('/points-per-dollar', authenticateToken, async (req, res) => {
         company.pointsPerDollar = pointsPerDollar;
         await company.save();
 
-        res.send({ message: 'Points per dollar rate updated successfully', pointsPerDollar });
+        res.send({ message: 'Points per dollar rate updated successfully' });
     } catch (error) {
-        res.status(400).send(error);
+        console.error('Error updating points per dollar rate:', error); // Debug log
+        res.status(500).send({ message: 'Server error' });
     }
 });
 

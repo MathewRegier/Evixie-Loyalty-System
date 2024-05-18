@@ -12,7 +12,7 @@
     <div id="customerDetails" class="mt-4"></div>
 
     <script>
-      async function fetchWithAuth(url, options) {
+      async function fetchWithAuth(url, options = {}) {
         const token = localStorage.getItem('token');
         if (!token) {
           window.location.href = 'login.html';
