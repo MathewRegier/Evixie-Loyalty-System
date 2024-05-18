@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Update Points Per Dollar Rate</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h1 class="text-center">Update Points Per Dollar Rate</h1>
+    <form id="updatePointsRateForm" class="mt-4">
+      <div class="form-group">
+        <label for="pointsPerDollar">Points Per Dollar:</label>
+        <input type="number" id="pointsPerDollar" name="pointsPerDollar" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Update Rate</button>
+    </form>
+
+    <script>
+      async function fetchWithAuth(url, options) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          window.location.href = 'login.html';
+          return;
+        }
+
+        options.headers = {
+          ...options.headers,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        };
+
+        const response = await fetch(url, options);
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = 'login.html';
+        }
+        return response;
+      }
+
+      document.getElementById('updatePointsRateForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const pointsPerDollar = event.target.pointsPerDollar.value;
+
+        const response = await fetchWithAuth('/company/points-per-dollar', {
+          method: 'PUT',
+          body: JSON.stringify({ pointsPerDollar })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          alert('Points per dollar rate updated successfully');
+        } else {
+          alert(data.message);
+        }
+      });
+    </script>
+  </div>
+</body>
+</html>

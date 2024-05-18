@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Dashboard</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h1 class="text-center">Customer Dashboard</h1>
+    <div id="customerInfo" class="mt-4">
+      <h2>Account Information</h2>
+      <p id="accountInfo"></p>
+      <h2>Points</h2>
+      <p id="pointsInfo"></p>
+    </div>
+
+    <div id="rewards" class="mt-4">
+      <h2>Available Rewards</h2>
+      <div id="rewardsList" class="list-group"></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const customerData = JSON.parse(localStorage.getItem('customerData'));
+      if (!customerData) {
+        alert('No customer data found.');
+        window.location.href = 'customer_points.html';
+        return;
+      }
+
+      document.getElementById('accountInfo').innerText = `
+        Name: ${customerData.firstName} ${customerData.lastName}
+        Email: ${customerData.email}
+        Phone: ${customerData.phoneNumber}
+        Date of Birth: ${new Date(customerData.dateOfBirth).toLocaleDateString()}
+      `;
+
+      document.getElementById('pointsInfo').innerText = `Points: ${customerData.points}`;
+
+      const token = localStorage.getItem('token'); // Assume the token is stored in localStorage
+
+      const response = await fetch(`/reward/company/${customerData.companyId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        alert('Failed to load rewards.');
+        return;
+      }
+
+      const rewards = await response.json();
+      const rewardsList = document.getElementById('rewardsList');
+      rewardsList.innerHTML = ''; // Clear previous rewards
+
+      rewards.forEach(reward => {
+        const rewardItem = document.createElement('a');
+        rewardItem.className = 'list-group-item list-group-item-action';
+        rewardItem.innerHTML = `
+          <h5 class="mb-1">${reward.name}</h5>
+          <p class="mb-1">${reward.description}</p>
+          <small>Points Required: ${reward.pointsRequired}</small>
+          <button class="btn btn-primary btn-sm float-right" onclick="redeemReward('${reward._id}')">Redeem</button>
+        `;
+        rewardsList.appendChild(rewardItem);
+      });
+    });
+
+    async function redeemReward(rewardId) {
+      const customerData = JSON.parse(localStorage.getItem('customerData'));
+      const token = localStorage.getItem('token'); // Assume the token is stored in localStorage
+
+      const response = await fetch('/customer/redeem', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ rewardId, phoneNumber: customerData.phoneNumber })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        alert('Reward redeemed successfully');
+        document.getElementById('pointsInfo').innerText = `Points: ${data.customer.points}`;
+        localStorage.setItem('customerData', JSON.stringify(data.customer)); // Update local storage
+      } else {
+        alert(data.message);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Customer</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h1 class="text-center">Manage Customer</h1>
+    <div id="customerDetails" class="mt-4"></div>
+
+    <script>
+      async function fetchWithAuth(url, options) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          window.location.href = 'login.html';
+          return;
+        }
+
+        options.headers = {
+          ...options.headers,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        };
+
+        const response = await fetch(url, options);
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = 'login.html';
+        }
+        return response;
+      }
+
+      function getCustomerIdFromQuery() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('customerId');
+      }
+
+      async function showCustomerDetails() {
+        const customerId = getCustomerIdFromQuery();
+        const response = await fetchWithAuth(`/customer/${customerId}`, {
+          method: 'GET'
+        });
+
+        const data = await response.json();
+        const customerDetails = document.getElementById('customerDetails');
+        customerDetails.innerHTML = '';
+
+        if (response.ok) {
+          customerDetails.innerHTML = `
+            <h3>Customer Details</h3>
+            <form id="manageCustomerForm">
+              <div class="form-group">
+                <label for="firstName">First Name:</label>
+                <input type="text" id="firstName" name="firstName" class="form-control" value="${data.customer.firstName}" required>
+              </div>
+              <div class="form-group">
+                <label for="lastName">Last Name:</label>
+                <input type="text" id="lastName" name="lastName" class="form-control" value="${data.customer.lastName}" required>
+              </div>
+              <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" class="form-control" value="${data.customer.email}" required>
+              </div>
+              <div class="form-group">
+                <label for="phoneNumber">Phone Number:</label>
+                <input type="text" id="phoneNumber" name="phoneNumber" class="form-control" value="${data.customer.phoneNumber}" required>
+              </div>
+              <div class="form-group">
+                <label for="dateOfBirth">Date of Birth:</label>
+                <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" value="${data.customer.dateOfBirth.split('T')[0]}" required>
+              </div>
+              <div class="form-group">
+                <label for="points">Points:</label>
+                <input type="number" id="points" name="points" class="form-control" value="${data.customer.points}" required>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Update Customer</button>
+            </form>
+          `;
+
+          document.getElementById('manageCustomerForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const customerData = {};
+            formData.forEach((value, key) => {
+              customerData[key] = value;
+            });
+
+            const response = await fetchWithAuth(`/customer/${customerId}`, {
+              method: 'PUT',
+              body: JSON.stringify(customerData)
+            });
+
+            const updateData = await response.json();
+            if (response.ok) {
+              alert('Customer updated successfully');
+              window.location.href = 'customer_details.html'; // Redirect to customer_details.html
+            } else {
+              alert(updateData.message);
+            }
+          });
+        } else {
+          customerDetails.innerHTML = '<p>Failed to load customer details.</p>';
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', showCustomerDetails);
+    </script>
+  </div>
+</body>
+</html>

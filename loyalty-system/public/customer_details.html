@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Search and Manage</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h1 class="text-center">Customer Search and Manage</h1>
+    <form id="searchForm" class="mt-4">
+      <div class="form-group">
+        <label for="searchTerm">Search by Phone, Email, or Name:</label>
+        <input type="text" id="searchTerm" name="searchTerm" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Search</button>
+    </form>
+
+    <div id="customerList" class="mt-4"></div>
+
+    <script>
+      async function fetchWithAuth(url, options) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          window.location.href = 'login.html';
+          return;
+        }
+
+        options.headers = {
+          ...options.headers,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        };
+
+        const response = await fetch(url, options);
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = 'login.html';
+        }
+        return response;
+      }
+
+      document.getElementById('searchForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const searchTerm = event.target.searchTerm.value.trim();
+
+        const response = await fetchWithAuth(`/customer/search?query=${encodeURIComponent(searchTerm)}`, {
+          method: 'GET'
+        });
+
+        const data = await response.json();
+        const customerList = document.getElementById('customerList');
+        customerList.innerHTML = '';
+
+        if (response.ok && data.customers.length > 0) {
+          data.customers.forEach(customer => {
+            const customerItem = document.createElement('div');
+            customerItem.className = 'list-group-item list-group-item-action';
+            customerItem.innerHTML = `
+              <h5>${customer.firstName} ${customer.lastName}</h5>
+              <p>${customer.email}</p>
+              <p>${customer.phoneNumber}</p>
+              <a href="manage_customer.html?customerId=${customer._id}" class="btn btn-primary btn-sm">Manage</a>
+            `;
+            customerList.appendChild(customerItem);
+          });
+        } else {
+          customerList.innerHTML = '<p>No customers found.</p>';
+        }
+      });
+    </script>
+  </div>
+</body>
+</html>
