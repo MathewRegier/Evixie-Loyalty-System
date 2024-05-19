@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const rewardSchema = new mongoose.Schema({
-  companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
+  companyId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Company' },
   name: { type: String, required: true },
   description: { type: String, required: true },
   pointsRequired: { type: Number, required: true },

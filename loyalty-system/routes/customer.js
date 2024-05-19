@@ -5,6 +5,12 @@ const Reward = require('../models/reward');
 const { authenticateToken, checkPermission } = require('../middleware/auth');
 const router = express.Router();
 
+const awardBadge = (customer, badge) => {
+  if (!customer.badges.includes(badge)) {
+    customer.badges.push(badge);
+  }
+};
+
 // Customer login
 router.post('/login', [
   body('phoneNumber').notEmpty().withMessage('Phone number is required')
@@ -16,13 +22,17 @@ router.post('/login', [
 
   try {
     const { phoneNumber } = req.body;
+    console.log('Login attempt with phoneNumber:', phoneNumber); // Debug log
+
     const customer = await Customer.findOne({ phoneNumber });
     if (!customer) {
       return res.status(404).send({ message: 'Customer not found' });
     }
 
+    console.log('Customer logged in:', customer); // Debug log
     res.send({ customer });
   } catch (error) {
+    console.error('Error during login:', error); // Debug log
     res.status(500).send({ message: 'Server error' });
   }
 });
@@ -96,6 +106,7 @@ router.post('/points/add', authenticateToken, checkPermission('canAddPoints'), a
     }
 
     customer.points += points;
+    customer.totalPointsEarned += points; // Update total points earned (EXP)
     await customer.save();
     res.send({ message: 'Points added successfully', points: customer.points });
   } catch (error) {
@@ -167,24 +178,33 @@ router.post('/redeem', async (req, res) => {
   }
 });
 
-// Earn points
-router.post('/earn', authenticateToken, async (req, res) => {
+// Leaderboard
+router.get('/leaderboard', authenticateToken, async (req, res) => {
   try {
-    const { customerId, amountSpent } = req.body;
-    const customer = await Customer.findById(customerId);
-    const company = await Company.findById(req.user.companyId);
-
-    if (!customer || !company) {
-      return res.status(404).send({ message: 'Customer or Company not found' });
-    }
-
-    const pointsEarned = amountSpent * company.pointsPerDollar;
-    customer.points += pointsEarned;
-    await customer.save();
-
-    res.send({ message: 'Points earned successfully', pointsEarned });
+    const customers = await Customer.find().sort({ level: -1, totalPointsEarned: -1 }).limit(10); // Top 10 customers
+    res.send(customers);
   } catch (error) {
     res.status(400).send(error);
+  }
+});
+
+// Get customer data based on JWT token
+router.get('/data', authenticateToken, async (req, res) => {
+  try {
+    console.log('User:', req.user); // Debug log
+    if (req.user.userType !== 'customer') {
+      return res.status(403).send({ message: 'Access denied. Not a customer.' });
+    }
+
+    const customerId = req.user.id; // Assuming the customer ID is in the token
+    const customer = await Customer.findById(customerId);
+    if (!customer) {
+      return res.status(404).send({ message: 'Customer not found' });
+    }
+    res.send(customer);
+  } catch (error) {
+    console.error('Server error:', error); // Debug log
+    res.status(500).send({ message: 'Server error' });
   }
 });
 

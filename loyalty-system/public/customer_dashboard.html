@@ -5,92 +5,290 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Customer Dashboard</title>
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #1c1c1c;
+      color: #f1f1f1;
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px;
+      flex-grow: 1;
+    }
+    h1, h2 {
+      color: #ffdd57;
+      margin: 10px 0;
+    }
+    .account-info {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .account-info > div {
+      flex: 1;
+      margin: 0 10px;
+    }
+    .exp-bar-container {
+      width: 100%;
+      background-color: #333;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .exp-bar {
+      height: 20px;
+      background-color: #4caf50;
+      text-align: center;
+      line-height: 20px;
+      color: #fff;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .exp-bar-text {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      text-align: center;
+      color: #fff;
+      line-height: 20px;
+    }
+    .card {
+      background-color: #2a2a2a;
+      border: none;
+      border-radius: 10px;
+      padding: 10px;
+      margin: 5px;
+      flex: 1;
+    }
+    .row {
+      display: flex;
+      width: 100%;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .value {
+      font-size: 3em;
+      font-weight: bold;
+      color: #fff;
+    }
+    .list-group-item {
+      background-color: #2a2a2a;
+      color: #f1f1f1;
+    }
+    .btn-primary {
+      background-color: #ff5722;
+      border: none;
+    }
+    .btn-primary:hover {
+      background-color: #e64a19;
+    }
+    .rewards-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .reward-item {
+      background-color: #2a2a2a;
+      padding: 10px;
+      border-radius: 10px;
+      width: 30%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: #1c1c1c;
+      padding: 10px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+    }
+    footer .card {
+      margin: 0 auto;
+      width: 100%;
+      max-width: 1200px;
+    }
+  </style>
 </head>
 <body>
-  <div class="container mt-5">
-    <h1 class="text-center">Customer Dashboard</h1>
-    <div id="customerInfo" class="mt-4">
-      <h2>Account Information</h2>
-      <p id="accountInfo"></p>
-      <h2>Points</h2>
-      <p id="pointsInfo"></p>
+  <div class="container mt-3">
+    <h1>Customer Dashboard</h1>
+    <div class="account-info">
+      <div>Name: <span id="accountName"></span></div>
+      <div>Email: <span id="accountEmail"></span></div>
+      <div>Phone: <span id="accountPhone"></span></div>
+      <div>Date of Birth: <span id="accountDob"></span></div>
     </div>
-
-    <div id="rewards" class="mt-4">
-      <h2>Available Rewards</h2>
-      <div id="rewardsList" class="list-group"></div>
+    <div id="expBarContainer" class="exp-bar-container">
+      <div id="expBar" class="exp-bar"></div>
+      <div id="expBarText" class="exp-bar-text">EXP: 0/1000</div>
+    </div>
+    <div class="row">
+      <div id="pointsInfoCard" class="card">
+        <h2>Points</h2>
+        <div id="pointsInfo" class="value"></div>
+      </div>
+      <div id="levelInfoCard" class="card">
+        <h2>Level</h2>
+        <div id="levelInfo" class="value"></div>
+        <p id="remainingExpInfo"></p>
+      </div>
+    </div>
+    <div class="row">
+      <div id="badgesCard" class="card">
+        <h2>Badges</h2>
+        <ul id="badgesList" class="list-group"></ul>
+      </div>
+      <div id="achievementsCard" class="card">
+        <h2>Achievements</h2>
+        <ul id="achievementsList" class="list-group"></ul>
+      </div>
     </div>
   </div>
+  <footer>
+    <div id="rewardsCard" class="card">
+      <h2>Available Rewards</h2>
+      <div id="rewardsList" class="rewards-grid"></div>
+    </div>
+  </footer>
 
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       const customerData = JSON.parse(localStorage.getItem('customerData'));
       if (!customerData) {
         alert('No customer data found.');
-        window.location.href = 'customer_points.html';
+        window.location.href = 'customer_login.html';
         return;
       }
 
-      document.getElementById('accountInfo').innerText = `
-        Name: ${customerData.firstName} ${customerData.lastName}
-        Email: ${customerData.email}
-        Phone: ${customerData.phoneNumber}
-        Date of Birth: ${new Date(customerData.dateOfBirth).toLocaleDateString()}
-      `;
+      document.getElementById('accountName').innerText = `${customerData.firstName} ${customerData.lastName}`;
+      document.getElementById('accountEmail').innerText = customerData.email;
+      document.getElementById('accountPhone').innerText = customerData.phoneNumber;
+      document.getElementById('accountDob').innerText = new Date(customerData.dateOfBirth).toLocaleDateString();
 
-      document.getElementById('pointsInfo').innerText = `Points: ${customerData.points}`;
+      document.getElementById('pointsInfo').innerText = customerData.points;
 
-      const token = localStorage.getItem('token'); // Assume the token is stored in localStorage
+      let currentExp = customerData.totalPointsEarned; // Use totalPointsEarned as EXP
+      let currentLevel = 1;
+      let expToNextLevel = 0;
 
-      const response = await fetch(`/reward/company/${customerData.companyId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
+      try {
+        const levelingConfigResponse = await fetch(`/company/leveling-config/${customerData.companyId}`);
+        if (!levelingConfigResponse.ok) {
+          throw new Error('Failed to load leveling configuration.');
         }
-      });
+        const levelingConfig = await levelingConfigResponse.json();
 
-      if (!response.ok) {
-        alert('Failed to load rewards.');
-        return;
+        if (levelingConfig.auto) {
+          let amount = levelingConfig.initialAmount / 2;
+          while (currentExp >= amount) {
+            currentExp -= amount;
+            currentLevel++;
+            amount *= 2;
+          }
+          expToNextLevel = amount - currentExp;
+        } else {
+          for (const config of levelingConfig.manualConfig) {
+            if (currentExp >= config.amount) {
+              currentLevel = config.level;
+              currentExp -= config.amount;
+            } else {
+              expToNextLevel = config.amount - currentExp;
+              break;
+            }
+          }
+        }
+
+        document.getElementById('levelInfo').innerText = currentLevel;
+        document.getElementById('expBar').style.width = `${(currentExp / expToNextLevel) * 100}%`;
+        document.getElementById('expBarText').innerText = `EXP: ${currentExp}/${expToNextLevel}`;
+        document.getElementById('remainingExpInfo').innerText = `EXP to next level: ${expToNextLevel}`;
+      } catch (error) {
+        console.error('Error fetching leveling config:', error);
+        alert('Failed to load leveling configuration.');
       }
 
-      const rewards = await response.json();
-      const rewardsList = document.getElementById('rewardsList');
-      rewardsList.innerHTML = ''; // Clear previous rewards
-
-      rewards.forEach(reward => {
-        const rewardItem = document.createElement('a');
-        rewardItem.className = 'list-group-item list-group-item-action';
-        rewardItem.innerHTML = `
-          <h5 class="mb-1">${reward.name}</h5>
-          <p class="mb-1">${reward.description}</p>
-          <small>Points Required: ${reward.pointsRequired}</small>
-          <button class="btn btn-primary btn-sm float-right" onclick="redeemReward('${reward._id}')">Redeem</button>
-        `;
-        rewardsList.appendChild(rewardItem);
+      const badgesList = document.getElementById('badgesList');
+      customerData.badges.forEach(badge => {
+        const badgeItem = document.createElement('li');
+        badgeItem.className = 'list-group-item';
+        badgeItem.textContent = badge;
+        badgesList.appendChild(badgeItem);
       });
+
+      const achievementsList = document.getElementById('achievementsList');
+      customerData.achievements.forEach(achievement => {
+        const achievementItem = document.createElement('li');
+        achievementItem.className = 'list-group-item';
+        achievementItem.textContent = achievement;
+        achievementsList.appendChild(achievementItem);
+      });
+
+      try {
+        const rewardsResponse = await fetch(`/reward/company/${customerData.companyId}`);
+        if (!rewardsResponse.ok) {
+          throw new Error('Failed to load rewards.');
+        }
+
+        const rewards = await rewardsResponse.json();
+        const rewardsList = document.getElementById('rewardsList');
+        rewardsList.innerHTML = ''; // Clear previous rewards
+
+        rewards.forEach(reward => {
+          const rewardItem = document.createElement('div');
+          rewardItem.className = 'reward-item';
+          rewardItem.innerHTML = `
+            <h5>${reward.name}</h5>
+            <p>${reward.description}</p>
+            <small>Points Required: ${reward.pointsRequired}</small>
+            <button class="btn btn-primary btn-sm mt-2" onclick="redeemReward('${reward._id}')">Redeem</button>
+          `;
+          rewardsList.appendChild(rewardItem);
+        });
+      } catch (error) {
+        console.error('Error fetching rewards:', error);
+        alert('Failed to load rewards.');
+      }
     });
 
     async function redeemReward(rewardId) {
       const customerData = JSON.parse(localStorage.getItem('customerData'));
-      const token = localStorage.getItem('token'); // Assume the token is stored in localStorage
 
-      const response = await fetch('/customer/redeem', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ rewardId, phoneNumber: customerData.phoneNumber })
-      });
+      try {
+        const response = await fetch('/customer/redeem', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ rewardId, phoneNumber: customerData.phoneNumber })
+        });
 
-      const data = await response.json();
-      if (response.ok) {
-        alert('Reward redeemed successfully');
-        document.getElementById('pointsInfo').innerText = `Points: ${data.customer.points}`;
-        localStorage.setItem('customerData', JSON.stringify(data.customer)); // Update local storage
-      } else {
-        alert(data.message);
+        const data = await response.json();
+        if (response.ok) {
+          alert('Reward redeemed successfully');
+          document.getElementById('pointsInfo').innerText = data.customer.points;
+          localStorage.setItem('customerData', JSON.stringify(data.customer)); // Update local storage
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error('Error redeeming reward:', error);
+        alert('Failed to redeem reward.');
       }
     }
   </script>

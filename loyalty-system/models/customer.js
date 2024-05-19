@@ -5,9 +5,13 @@ const customerSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  phoneNumber: { type: String, required: true },
+  phoneNumber: { type: String, required: true, unique: true },
   dateOfBirth: { type: Date, required: true },
-  points: { type: Number, default: 0 }
+  points: { type: Number, default: 0 },
+  totalPointsEarned: { type: Number, default: 0 }, // New field to track total points earned (EXP)
+  level: { type: Number, default: 1 },
+  badges: [String],
+  achievements: [String]
 });
 
 module.exports = mongoose.model('Customer', customerSchema);

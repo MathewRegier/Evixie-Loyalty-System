@@ -6,9 +6,11 @@ function authenticateToken(req, res, next) {
 
   try {
     const verified = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('Verified Token:', verified); // Debug log
     req.user = verified;
     next();
   } catch (error) {
+    console.error('Invalid token:', error); // Debug log
     res.status(400).send({ message: 'Invalid token' });
   }
 }
