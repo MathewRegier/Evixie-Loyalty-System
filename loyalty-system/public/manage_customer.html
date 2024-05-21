@@ -3,111 +3,180 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Customer</title>
+  <title>Manage Company</title>
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="styles/combined.css" rel="stylesheet">
+  <script src="branding.js" defer></script>
+  <script src="common.js" defer></script>
+
 </head>
 <body>
   <div class="container mt-5">
-    <h1 class="text-center">Manage Customer</h1>
-    <div id="customerDetails" class="mt-4"></div>
+    <h1 class="text-center">Manage Company</h1>
+    <img id="companyLogo" alt="Company Logo" class="mx-auto d-block" style="max-height: 100px;">
+    
+    <!-- Update Company Info Form -->
+    <div class="card mt-4">
+      <div class="card-body">
+        <h2>Company Information</h2>
+        <form id="updateCompanyInfoForm">
+          <div class="form-group">
+            <label for="companyName">Company Name:</label>
+            <input type="text" id="companyName" name="companyName" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="companyEmail">Company Email:</label>
+            <input type="email" id="companyEmail" name="companyEmail" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Update Company Info</button>
+        </form>
+      </div>
+    </div>
 
-    <script>
-      async function fetchWithAuth(url, options = {}) {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          window.location.href = 'login.html';
-          return;
-        }
+    <!-- Update Branding Form -->
+    <div class="card mt-4">
+      <div class="card-body">
+        <h2>Branding</h2>
+        <form id="updateBrandingForm">
+          <div class="form-group">
+            <label for="logoUrl">Logo URL:</label>
+            <input type="text" id="logoUrl" name="logoUrl" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="primaryColor">Primary Color:</label>
+            <input type="color" id="primaryColor" name="primaryColor" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="secondaryColor">Secondary Color:</label>
+            <input type="color" id="secondaryColor" name="secondaryColor" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Update Branding</button>
+        </form>
+      </div>
+    </div>
 
-        options.headers = {
-          ...options.headers,
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        };
-
-        const response = await fetch(url, options);
-        if (response.status === 401) {
-          localStorage.removeItem('token');
-          window.location.href = 'login.html';
-        }
-        return response;
-      }
-
-      function getCustomerIdFromQuery() {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get('customerId');
-      }
-
-      async function showCustomerDetails() {
-        const customerId = getCustomerIdFromQuery();
-        const response = await fetchWithAuth(`/customer/${customerId}`, {
-          method: 'GET'
-        });
-
-        const data = await response.json();
-        const customerDetails = document.getElementById('customerDetails');
-        customerDetails.innerHTML = '';
-
-        if (response.ok) {
-          customerDetails.innerHTML = `
-            <h3>Customer Details</h3>
-            <form id="manageCustomerForm">
-              <div class="form-group">
-                <label for="firstName">First Name:</label>
-                <input type="text" id="firstName" name="firstName" class="form-control" value="${data.customer.firstName}" required>
-              </div>
-              <div class="form-group">
-                <label for="lastName">Last Name:</label>
-                <input type="text" id="lastName" name="lastName" class="form-control" value="${data.customer.lastName}" required>
-              </div>
-              <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" class="form-control" value="${data.customer.email}" required>
-              </div>
-              <div class="form-group">
-                <label for="phoneNumber">Phone Number:</label>
-                <input type="text" id="phoneNumber" name="phoneNumber" class="form-control" value="${data.customer.phoneNumber}" required>
-              </div>
-              <div class="form-group">
-                <label for="dateOfBirth">Date of Birth:</label>
-                <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" value="${data.customer.dateOfBirth.split('T')[0]}" required>
-              </div>
-              <div class="form-group">
-                <label for="points">Points:</label>
-                <input type="number" id="points" name="points" class="form-control" value="${data.customer.points}" required>
-              </div>
-              <button type="submit" class="btn btn-primary btn-block">Update Customer</button>
-            </form>
-          `;
-
-          document.getElementById('manageCustomerForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const formData = new FormData(event.target);
-            const customerData = {};
-            formData.forEach((value, key) => {
-              customerData[key] = value;
-            });
-
-            const response = await fetchWithAuth(`/customer/${customerId}`, {
-              method: 'PUT',
-              body: JSON.stringify(customerData)
-            });
-
-            const updateData = await response.json();
-            if (response.ok) {
-              alert('Customer updated successfully');
-              window.location.href = 'customer_details.html'; // Redirect to customer_details.html
-            } else {
-              alert(updateData.message);
-            }
-          });
-        } else {
-          customerDetails.innerHTML = '<p>Failed to load customer details.</p>';
-        }
-      }
-
-      document.addEventListener('DOMContentLoaded', showCustomerDetails);
-    </script>
+    <!-- Update Points Per Dollar Rate Form -->
+    <div class="card mt-4">
+      <div class="card-body">
+        <h2>Points Per Dollar Rate</h2>
+        <form id="updatePointsRateForm">
+          <div class="form-group">
+            <label for="pointsPerDollar">Points Per Dollar:</label>
+            <input type="number" id="pointsPerDollar" name="pointsPerDollar" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Update Rate</button>
+        </form>
+      </div>
+    </div>
   </div>
+
+  <script>
+    async function fetchWithAuth(url, options) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const isTokenExpired = (token) => {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.exp * 1000 < Date.now();
+      };
+
+      if (isTokenExpired(token)) {
+        localStorage.removeItem('token');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      options.headers = {
+        ...options.headers,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      const response = await fetch(url, options);
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = 'login.html';
+      }
+      return response;
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/company/details', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const company = await response.json();
+        document.getElementById('companyName').value = company.name;
+        document.getElementById('companyEmail').value = company.email;
+        document.getElementById('logoUrl').value = company.branding.logoUrl;
+        document.getElementById('primaryColor').value = company.branding.primaryColor;
+        document.getElementById('secondaryColor').value = company.branding.secondaryColor;
+        document.getElementById('pointsPerDollar').value = company.pointsPerDollar;
+      } else {
+        console.error('Failed to load company details');
+      }
+    });
+
+    document.getElementById('updateCompanyInfoForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const companyName = event.target.companyName.value;
+      const companyEmail = event.target.companyEmail.value;
+
+      const response = await fetchWithAuth('/company/update-info', {
+        method: 'PUT',
+        body: JSON.stringify({ name: companyName, email: companyEmail })
+      });
+
+      if (response.ok) {
+        alert('Company information updated successfully');
+      } else {
+        alert('Failed to update company information');
+      }
+    });
+
+    document.getElementById('updateBrandingForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const logoUrl = event.target.logoUrl.value;
+      const primaryColor = event.target.primaryColor.value;
+      const secondaryColor = event.target.secondaryColor.value;
+
+      const response = await fetchWithAuth('/company/branding', {
+        method: 'PUT',
+        body: JSON.stringify({
+          logoUrl,
+          primaryColor,
+          secondaryColor
+        })
+      });
+
+      if (response.ok) {
+        alert('Branding updated successfully');
+        window.location.reload(); // Reload page to apply new branding
+      } else {
+        alert('Failed to update branding');
+      }
+    });
+
+    document.getElementById('updatePointsRateForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const pointsPerDollar = event.target.pointsPerDollar.value;
+
+      const response = await fetchWithAuth('/company/points-per-dollar', {
+        method: 'PUT',
+        body: JSON.stringify({ pointsPerDollar })
+      });
+
+      if (response.ok) {
+        alert('Points per dollar rate updated successfully');
+      } else {
+        alert('Failed to update points per dollar rate');
+      }
+    });
+  </script>
 </body>
 </html>

@@ -5,11 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="styles/combined.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: var(--primary-color);
+      color: var(--secondary-color);
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding-top: 50px;
+    }
+  </style>
 </head>
 <body>
-  <div class="container mt-5">
+  <div class="container">
     <h1 class="text-center">Login</h1>
-    <form id="loginForm" class="mt-4">
+    <form id="loginForm">
       <div class="form-group">
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" class="form-control" required>
@@ -23,36 +35,45 @@
   </div>
 
   <script>
-    document.getElementById('loginForm').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const email = event.target.email.value;
-      const password = event.target.password.value;
-
-      try {
-        const response = await fetch('/company/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email, password })
-        });
-
-        if (!response.ok) {
-          throw new Error('Invalid credentials');
-        }
-
-        const data = await response.json();
-        localStorage.setItem('token', data.token);
-        
-        if (data.userType === 'company') {
-          window.location.href = 'company.html';
-        } else if (data.userType === 'staff') {
-          window.location.href = 'customer.html';
-        }
-      } catch (error) {
-        alert(error.message);
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('token');
+      if (token && isTokenExpired(token)) {
+        console.log('Token expired, removing token.');
+        localStorage.removeItem('token');
       }
+
+      document.getElementById('loginForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+          const response = await fetch('/company/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
+            window.location.href = 'company.html'; // Redirect to dashboard or the appropriate page
+          } else {
+            const errorData = await response.json();
+            alert(errorData.message);
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          alert('Failed to login. Please try again later.');
+        }
+      });
     });
+
+    function isTokenExpired(token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp * 100000 < Date.now();
+    }
   </script>
 </body>
 </html>

@@ -1,0 +1,50 @@
+/* business_frontend.css */
+
+body {
+    background-color: #1c1c1c;
+    color: #f1f1f1;
+    font-family: 'Arial', sans-serif;
+    padding: 20px;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  h1, h2 {
+    color: #ffdd57;
+    margin: 10px 0;
+  }
+  .card {
+    background-color: #2a2a2a;
+    border: none;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .btn {
+    border-radius: 5px;
+  }
+  .btn-primary {
+    background-color: #ff5722;
+    border: none;
+  }
+  .btn-primary:hover {
+    background-color: #e64a19;
+  }
+  .form-control {
+    background-color: #333;
+    color: #f1f1f1;
+    border: none;
+    border-radius: 5px;
+  }
+  .form-control:focus {
+    background-color: #444;
+    color: #f1f1f1;
+    border: none;
+  }
+  .list-group-item {
+    background-color: #2a2a2a;
+    color: #f1f1f1;
+  }
+  

@@ -1,0 +1,84 @@
+:root {
+    --primary-color: #1c1c1c; /* Default primary color */
+    --secondary-color: #ffdd57; /* Default secondary color */
+    --background-color: #1c1c1c;
+    --text-color: #ffdd57;
+    --button-background-color: #ffdd57;
+    --button-text-color: #1c1c1c;
+  }
+  
+  body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: Arial, sans-serif;
+  }
+  
+  h1, h2 {
+    color: var(--text-color);
+  }
+  
+  .card {
+    background-color: var(--primary-color);
+    border: 1px solid var(--secondary-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+  }
+  
+  .card-body {
+    padding: 20px;
+  }
+  
+  .form-group label {
+    color: var(--text-color);
+  }
+  
+  .form-control {
+    background-color: var(--primary-color);
+    border: 1px solid var(--secondary-color);
+    color: var(--text-color);
+  }
+  
+  .btn-primary {
+    background-color: var(--button-background-color);
+    border: none;
+    color: var(--button-text-color);
+  }
+  
+  .btn-primary:hover {
+    background-color: darken(var(--button-background-color), 10%);
+    color: var(--button-text-color);
+  }
+  
+  .list-group-item {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border: 1px solid var(--secondary-color);
+  }
+  
+  .reward-item {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border: 1px solid var(--secondary-color);
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+  }
+  
+  .mt-5 {
+    margin-top: 5rem;
+  }
+  
+  .mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .d-block {
+    display: block;
+  }
+  
+  .text-center {
+    text-align: center;
+  }
+  

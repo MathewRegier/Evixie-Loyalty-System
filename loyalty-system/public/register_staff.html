@@ -5,10 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register Staff</title>
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="styles/combined.css" rel="stylesheet">
+  <script src="branding.js" defer></script>
+  <script src="common.js" defer></script>
+
 </head>
 <body>
   <div class="container mt-5">
     <h1 class="text-center">Register Staff</h1>
+    <img id="companyLogo" alt="Company Logo" class="mx-auto d-block" style="max-height: 100px;">
     <form id="registerStaffForm" class="mt-4">
       <div class="form-group">
         <label for="name">Name:</label>
@@ -32,7 +37,6 @@
           <input class="form-check-input" type="checkbox" id="canAddPoints" name="permissions" value="canAddPoints">
           <label class="form-check-label" for="canAddPoints">Can Add Points</label>
         </div>
-        <!-- Add other permissions here -->
       </div>
       <button type="submit" class="btn btn-primary btn-block">Register</button>
     </form>

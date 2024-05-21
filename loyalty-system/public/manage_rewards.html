@@ -5,51 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manage Rewards</title>
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="styles/combined.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
-  <style>
-    body {
-      background-color: #1c1c1c;
-      color: #f1f1f1;
-      font-family: 'Arial', sans-serif;
-      padding: 20px;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    h1, h2 {
-      color: #ffdd57;
-      margin-bottom: 20px;
-    }
-    .card {
-      background-color: #2a2a2a;
-      border: none;
-      border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    .form-control, .btn {
-      border-radius: 5px;
-    }
-    .btn-primary {
-      background-color: #ff5722;
-      border: none;
-    }
-    .btn-primary:hover {
-      background-color: #e64a19;
-    }
-    .list-group-item {
-      background-color: #2a2a2a;
-      color: #f1f1f1;
-    }
-    .badge-primary {
-      background-color: #ff5722;
-    }
-  </style>
+  <script src="branding.js" defer></script>
+  <script src="common.js" defer></script>
+
 </head>
 <body>
   <div class="container">
     <h1>Manage Rewards</h1>
+    <img id="companyLogo" alt="Company Logo" class="mx-auto d-block" style="max-height: 100px;">
     <div class="card">
       <h2>Create Reward</h2>
       <form id="rewardForm">
@@ -76,13 +41,12 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      const token = localStorage.getItem('token'); // Assume the token is stored in localStorage
+      const token = localStorage.getItem('token');
       const decodedToken = jwt_decode(token);
       const companyId = decodedToken.companyId;
-      
-      // Fetch and display existing rewards
+
       const fetchRewards = async () => {
-        const response = await fetch(`/reward/company`, {
+        const response = await fetch(`/reward/company/${companyId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const rewards = await response.json();
@@ -101,10 +65,8 @@
         });
       };
 
-      // Fetch initial data
       await fetchRewards();
 
-      // Handle reward creation
       document.getElementById('rewardForm').addEventListener('submit', async (event) => {
         event.preventDefault();
         const reward = {
@@ -122,10 +84,9 @@
         });
         const result = await response.json();
         alert('Reward created');
-        await fetchRewards(); // Refresh the rewards list
+        await fetchRewards();
       });
 
-      // Handle reward deletion
       window.deleteReward = async (rewardId) => {
         const response = await fetch(`/reward/${rewardId}`, {
           method: 'DELETE',
@@ -133,10 +94,9 @@
         });
         const result = await response.json();
         alert(result.message);
-        await fetchRewards(); // Refresh the rewards list
+        await fetchRewards();
       };
 
-      // Handle reward editing (this could be expanded with a proper modal or form)
       window.editReward = async (rewardId) => {
         const reward = await (await fetch(`/reward/${rewardId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -161,7 +121,7 @@
           });
           const result = await response.json();
           alert('Reward updated');
-          await fetchRewards(); // Refresh the rewards list
+          await fetchRewards();
         }, { once: true });
       };
     });

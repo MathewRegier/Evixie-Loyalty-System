@@ -6,13 +6,15 @@
   <title>Register Customer</title>
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <link href="styles/combined.css" rel="stylesheet">
+  <script src="branding.js" defer></script>
   <script src="common.js" defer></script>
 
 </head>
 <body>
   <div class="container mt-5">
     <h1 class="text-center">Register Customer</h1>
-    <form id="registerForm" class="mt-4">
+    <img id="companyLogo" alt="Company Logo" class="mx-auto d-block" style="max-height: 100px;">
+    <form id="registerCustomerForm" class="mt-4">
       <div class="form-group">
         <label for="firstName">First Name:</label>
         <input type="text" id="firstName" name="firstName" class="form-control" required>
@@ -33,11 +35,11 @@
         <label for="dateOfBirth">Date of Birth:</label>
         <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" required>
       </div>
-      <button type="submit" class="btn btn-primary btn-block">Register</button>
+      <button type="submit" class="btn btn-primary btn-block">Register Customer</button>
     </form>
 
     <script>
-      async function fetchWithAuth(url, options) {
+      async function fetchWithAuth(url, options = {}) {
         const token = localStorage.getItem('token');
         if (!token) {
           window.location.href = 'login.html';
@@ -58,24 +60,31 @@
         return response;
       }
 
-      document.getElementById('registerForm').addEventListener('submit', async (event) => {
+      document.getElementById('registerCustomerForm').addEventListener('submit', async (event) => {
         event.preventDefault();
-        const firstName = event.target.firstName.value;
-        const lastName = event.target.lastName.value;
-        const email = event.target.email.value;
-        const phoneNumber = event.target.phoneNumber.value;
-        const dateOfBirth = event.target.dateOfBirth.value;
-
-        const response = await fetchWithAuth('/customer/register', {
-          method: 'POST',
-          body: JSON.stringify({ firstName, lastName, email, phoneNumber, dateOfBirth })
+        const formData = new FormData(event.target);
+        const customerData = {};
+        formData.forEach((value, key) => {
+          customerData[key] = value;
         });
 
-        const data = await response.json();
-        if (response.ok) {
-          alert('Customer registered successfully');
-        } else {
-          alert(data.message);
+        try {
+          const response = await fetchWithAuth('/customer/register', {
+            method: 'POST',
+            body: JSON.stringify(customerData)
+          });
+
+          const data = await response.json();
+          if (response.ok) {
+            alert('Customer registered successfully');
+            window.location.href = 'manage_customers_dashboard.html';
+          } else {
+            console.error('Registration failed:', data);
+            alert(data.message);
+          }
+        } catch (error) {
+          console.error('Error during registration:', error);
+          alert('Failed to register customer.');
         }
       });
     </script>

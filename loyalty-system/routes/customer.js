@@ -123,7 +123,8 @@ router.get('/:customerId', authenticateToken, async (req, res) => {
     }
     res.send({ customer });
   } catch (error) {
-    res.status(400).send(error);
+    console.error('Error fetching customer details:', error); // Debug log
+    res.status(400).send({ message: 'Failed to fetch customer details' });
   }
 });
 
@@ -204,6 +205,38 @@ router.get('/data', authenticateToken, async (req, res) => {
     res.send(customer);
   } catch (error) {
     console.error('Server error:', error); // Debug log
+    res.status(500).send({ message: 'Server error' });
+  }
+});
+
+// Fetch company details
+router.get('/details', authenticateToken, async (req, res) => {
+  try {
+    const companyId = req.user.companyId;
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return res.status(404).send({ message: 'Company not found' });
+    }
+    res.send(company);
+  } catch (error) {
+    res.status(500).send({ message: 'Server error' });
+  }
+});
+
+// Update company information
+router.put('/update-info', authenticateToken, async (req, res) => {
+  try {
+    const companyId = req.user.companyId;
+    const { name, email } = req.body;
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return res.status(404).send({ message: 'Company not found' });
+    }
+    company.name = name;
+    company.email = email;
+    await company.save();
+    res.send({ message: 'Company information updated successfully' });
+  } catch (error) {
     res.status(500).send({ message: 'Server error' });
   }
 });

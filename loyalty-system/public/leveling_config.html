@@ -5,44 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Leveling Configuration</title>
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="styles/combined.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/jwt-decode/build/jwt-decode.min.js"></script>
-  <style>
-    body {
-      background-color: #1c1c1c;
-      color: #f1f1f1;
-      font-family: 'Arial', sans-serif;
-      padding: 20px;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    h1, h2 {
-      color: #ffdd57;
-      margin-bottom: 20px;
-    }
-    .card {
-      background-color: #2a2a2a;
-      border: none;
-      border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    .form-control, .btn {
-      border-radius: 5px;
-    }
-    .btn-primary {
-      background-color: #ff5722;
-      border: none;
-    }
-    .btn-primary:hover {
-      background-color: #e64a19;
-    }
-  </style>
+  <script src="branding.js" defer></script>
+  <script src="common.js" defer></script>
+
 </head>
 <body>
   <div class="container">
     <h1>Leveling Configuration</h1>
+    <img id="companyLogo" alt="Company Logo" class="mx-auto d-block" style="max-height: 100px;">
     <div class="card">
       <h2>Leveling Configuration</h2>
       <form id="levelingConfigForm">
@@ -69,13 +41,12 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      const token = localStorage.getItem('token'); // Assume the token is stored in localStorage
+      const token = localStorage.getItem('token');
       const decodedToken = jwt_decode(token);
       const companyId = decodedToken.companyId;
-      
-      // Fetch and display existing configuration
+
       const fetchConfig = async () => {
-        const response = await fetch(`/company/leveling-config`, {
+        const response = await fetch(`/company/leveling-config/${companyId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const config = await response.json();
@@ -88,7 +59,6 @@
           document.getElementById('autoConfig').style.display = 'none';
           document.getElementById('manualConfig').style.display = 'block';
           document.getElementById('maxLevel').value = config.manualConfig.length;
-          // Populate manual levels
           const manualLevels = document.getElementById('manualLevels');
           manualLevels.innerHTML = '';
           config.manualConfig.forEach((levelConfig, index) => {
@@ -103,10 +73,8 @@
         }
       };
 
-      // Fetch initial data
       await fetchConfig();
 
-      // Handle leveling type change
       document.getElementById('levelingType').addEventListener('change', (event) => {
         if (event.target.value === 'auto') {
           document.getElementById('autoConfig').style.display = 'block';
@@ -117,7 +85,6 @@
         }
       });
 
-      // Handle max level change for manual configuration
       document.getElementById('maxLevel').addEventListener('input', (event) => {
         const maxLevel = parseInt(event.target.value);
         const manualLevels = document.getElementById('manualLevels');
@@ -133,7 +100,6 @@
         }
       });
 
-      // Handle leveling config update
       document.getElementById('levelingConfigForm').addEventListener('submit', async (event) => {
         event.preventDefault();
         const levelingType = document.getElementById('levelingType').value;
@@ -152,7 +118,7 @@
         });
         const result = await response.json();
         alert('Leveling configuration updated');
-        await fetchConfig(); // Refresh the configuration display
+        await fetchConfig();
       });
     });
   </script>

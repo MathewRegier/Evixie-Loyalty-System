@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Styling</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="styles/combined.css" rel="stylesheet">
+  <style>
+    .container-flex {
+      display: flex;
+      height: 100vh;
+    }
+    .form-group-container, .preview-section {
+      flex: 1;
+      padding: 20px;
+    }
+    .form-group-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background-color: var(--background-color);
+      color: var(--text-color);
+    }
+    .preview-section {
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--background-color); /* Ensure preview section uses the selected background color */
+    }
+    .rewards-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .reward-item {
+      background-color: var(--primary-color);
+      padding: 10px;
+      border-radius: 10px;
+      width: 45%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-flex">
+    <!-- Styling Options -->
+    <div class="form-group-container">
+      <h2>Styling Options</h2>
+      <div class="form-group">
+        <label for="logoUrl">Logo URL:</label>
+        <input type="text" id="logoUrl" name="logoUrl" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="primaryColor">Primary Color:</label>
+        <input type="color" id="primaryColor" name="primaryColor" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="secondaryColor">Secondary Color:</label>
+        <input type="color" id="secondaryColor" name="secondaryColor" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="backgroundColor">Background Color:</label>
+        <input type="color" id="backgroundColor" name="backgroundColor" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="textColor">Text Color:</label>
+        <input type="color" id="textColor" name="textColor" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="buttonBackgroundColor">Button Background Color:</label>
+        <input type="color" id="buttonBackgroundColor" name="buttonBackgroundColor" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="buttonTextColor">Button Text Color:</label>
+        <input type="color" id="buttonTextColor" name="buttonTextColor" class="form-control">
+      </div>
+      <button id="saveStyling" class="btn btn-primary">Save Styling</button>
+    </div>
+
+    <!-- Preview Section -->
+    <div class="preview-section">
+      <div class="container mt-3">
+        <h1>Customer Dashboard</h1>
+        <img id="companyLogoPreview" alt="Company Logo" class="mx-auto d-block" style="max-height: 100px;">
+        <div class="account-info">
+          <div>Name: John Doe</div>
+          <div>Email: john.doe@example.com</div>
+          <div>Phone: 123-456-7890</div>
+          <div>Date of Birth: 01/01/1990</div>
+        </div>
+        <div id="expBarContainer" class="exp-bar-container">
+          <div id="expBar" class="exp-bar" style="width: 50%;"></div>
+          <div id="expBarText" class="exp-bar-text">EXP: 500/1000</div>
+        </div>
+        <div class="row">
+          <div id="pointsInfoCard" class="card">
+            <h2>Points</h2>
+            <div id="pointsInfo" class="value">5000</div>
+          </div>
+          <div id="levelInfoCard" class="card">
+            <h2>Level</h2>
+            <div id="levelInfo" class="value">10</div>
+            <p id="remainingExpInfo">EXP to next level: 500</p>
+          </div>
+        </div>
+        <div class="row">
+          <div id="badgesCard" class="card">
+            <h2>Badges</h2>
+            <ul id="badgesList" class="list-group">
+              <li class="list-group-item">Badge 1</li>
+              <li class="list-group-item">Badge 2</li>
+            </ul>
+          </div>
+          <div id="achievementsCard" class="card">
+            <h2>Achievements</h2>
+            <ul id="achievementsList" class="list-group">
+              <li class="list-group-item">Achievement 1</li>
+              <li class="list-group-item">Achievement 2</li>
+            </ul>
+          </div>
+        </div>
+        <div id="rewardsCard" class="card">
+          <h2>Available Rewards</h2>
+          <div id="rewardsList" class="rewards-grid">
+            <div class="reward-item">
+              <h5>Reward 1</h5>
+              <p>Reward Description</p>
+              <small>Points Required: 1000</small>
+              <button class="btn btn-primary btn-sm mt-2">Redeem</button>
+            </div>
+            <div class="reward-item">
+              <h5>Reward 2</h5>
+              <p>Reward Description</p>
+              <small>Points Required: 2000</small>
+              <button class="btn btn-primary btn-sm mt-2">Redeem</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const token = localStorage.getItem('token');
+      if (!token || isTokenExpired(token)) {
+        console.log('No token or token expired on page load, redirecting to login.');
+        localStorage.removeItem('token');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const response = await fetchWithAuth('/company/details', {
+        method: 'GET'
+      });
+
+      if (response) {
+        const company = await response.json();
+
+        // Set initial values for inputs
+        document.getElementById('logoUrl').value = company.branding.logoUrl;
+        document.getElementById('primaryColor').value = company.branding.primaryColor;
+        document.getElementById('secondaryColor').value = company.branding.secondaryColor;
+        document.getElementById('backgroundColor').value = company.branding.backgroundColor || company.branding.primaryColor;
+        document.getElementById('textColor').value = company.branding.textColor || company.branding.secondaryColor;
+        document.getElementById('buttonBackgroundColor').value = company.branding.buttonBackgroundColor || company.branding.secondaryColor;
+        document.getElementById('buttonTextColor').value = company.branding.buttonTextColor || company.branding.primaryColor;
+
+        // Apply initial branding colors
+        applyBranding(company.branding);
+
+        // Add event listeners to update preview in real-time
+        const inputs = document.querySelectorAll('.form-control');
+        inputs.forEach(input => {
+          input.addEventListener('input', () => {
+            const branding = {
+              logoUrl: document.getElementById('logoUrl').value,
+              primaryColor: document.getElementById('primaryColor').value,
+              secondaryColor: document.getElementById('secondaryColor').value,
+              backgroundColor: document.getElementById('backgroundColor').value || document.getElementById('primaryColor').value,
+              textColor: document.getElementById('textColor').value || document.getElementById('secondaryColor').value,
+              buttonBackgroundColor: document.getElementById('buttonBackgroundColor').value || document.getElementById('secondaryColor').value,
+              buttonTextColor: document.getElementById('buttonTextColor').value || document.getElementById('primaryColor').value
+            };
+            applyBranding(branding);
+          });
+        });
+
+        // Save styling
+        document.getElementById('saveStyling').addEventListener('click', async () => {
+          const branding = {
+            logoUrl: document.getElementById('logoUrl').value,
+            primaryColor: document.getElementById('primaryColor').value,
+            secondaryColor: document.getElementById('secondaryColor').value,
+            backgroundColor: document.getElementById('backgroundColor').value || document.getElementById('primaryColor').value,
+            textColor: document.getElementById('textColor').value || document.getElementById('secondaryColor').value,
+            buttonBackgroundColor: document.getElementById('buttonBackgroundColor').value || document.getElementById('secondaryColor').value,
+            buttonTextColor: document.getElementById('buttonTextColor').value || document.getElementById('primaryColor').value
+          };
+
+          const response = await fetchWithAuth('/company/branding', {
+            method: 'PUT',
+            body: JSON.stringify(branding)
+          });
+
+          if (response && response.ok) {
+            alert('Branding updated successfully');
+            // Reload the page to apply the new styles
+            location.reload();
+          } else {
+            alert('Failed to update branding');
+          }
+        });
+      } else {
+        console.error('Failed to load company details');
+      }
+    });
+
+    function applyBranding(branding) {
+      if (branding.logoUrl) {
+        document.getElementById('companyLogoPreview').src = branding.logoUrl;
+      }
+
+      if (branding.primaryColor) {
+        document.documentElement.style.setProperty('--primary-color', branding.primaryColor);
+      }
+
+      if (branding.secondaryColor) {
+        document.documentElement.style.setProperty('--secondary-color', branding.secondaryColor);
+      }
+
+      if (branding.backgroundColor) {
+        document.documentElement.style.setProperty('--background-color', branding.backgroundColor);
+        document.querySelector('.form-group-container').style.backgroundColor = branding.backgroundColor;
+      }
+
+      if (branding.textColor) {
+        document.documentElement.style.setProperty('--text-color', branding.textColor);
+      }
+
+      if (branding.buttonBackgroundColor) {
+        document.documentElement.style.setProperty('--button-background-color', branding.buttonBackgroundColor);
+      }
+
+      if (branding.buttonTextColor) {
+        document.documentElement.style.setProperty('--button-text-color', branding.buttonTextColor);
+      }
+    }
+
+    async function fetchWithAuth(url, options) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('No token found, redirecting to login.');
+        window.location.href = 'login.html';
+        return null;
+      }
+
+      const isTokenExpired = (token) => {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.exp * 1000 < Date.now();
+      };
+
+      if (isTokenExpired(token)) {
+        console.log('Token expired, removing token and redirecting to login.');
+        localStorage.removeItem('token');
+        window.location.href = 'login.html';
+        return null;
+      }
+
+      options.headers = {
+        ...options.headers,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      try {
+        const response = await fetch(url, options);
+        if (response.status === 401) {
+          console.log('Unauthorized response, removing token and redirecting to login.');
+          localStorage.removeItem('token');
+          window.location.href = 'login.html';
+          return null;
+        }
+        return response;
+      } catch (error) {
+        console.error('Fetch error:', error);
+        alert('Failed to fetch data. Please try again later.');
+        return null;
+      }
+    }
+
+    function isTokenExpired(token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp * 1000 < Date.now();
+    }
+  </script>
+</body>
+</html>

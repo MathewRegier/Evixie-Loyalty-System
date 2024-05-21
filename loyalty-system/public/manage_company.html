@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Company</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="styles/combined.css" rel="stylesheet">
+  <script src="branding.js" defer></script>
+  <script src="common.js" defer></script>
+
+  <style>
+    .preview-section {
+      border: 1px solid var(--secondary-color);
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 8px;
+      flex: 1;
+    }
+    .preview-section h1, .preview-section h2, .preview-section div, .preview-section p {
+      color: var(--secondary-color);
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <h1 class="text-center">Manage Company</h1>
+    <img id="companyLogo" alt="Company Logo" class="mx-auto d-block" style="max-height: 100px;">
+    
+    <!-- Update Company Info Form -->
+    <div class="card mt-4">
+      <div class="card-body">
+        <h2>Company Information</h2>
+        <form id="updateCompanyInfoForm">
+          <div class="form-group">
+            <label for="companyName">Company Name:</label>
+            <input type="text" id="companyName" name="companyName" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="companyEmail">Company Email:</label>
+            <input type="email" id="companyEmail" name="companyEmail" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Update Company Info</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Update Branding Form -->
+    <div class="card mt-4">
+      <div class="card-body">
+        <h2>Branding</h2>
+        <form id="updateBrandingForm">
+          <div class="form-group">
+            <label for="logoUrl">Logo URL:</label>
+            <input type="text" id="logoUrl" name="logoUrl" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="primaryColor">Primary Color:</label>
+            <input type="color" id="primaryColor" name="primaryColor" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="secondaryColor">Secondary Color:</label>
+            <input type="color" id="secondaryColor" name="secondaryColor" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Update Branding</button>
+        </form>
+        <button id="goToAdvancedStyling" class="btn btn-secondary btn-block mt-3">Advanced Styling</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const goToAdvancedStyling = document.getElementById('goToAdvancedStyling');
+
+      goToAdvancedStyling.addEventListener('click', () => {
+        window.location.href = 'advanced_styling.html';
+      });
+
+      const updateBrandingForm = document.getElementById('updateBrandingForm');
+
+      updateBrandingForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const logoUrl = document.getElementById('logoUrl').value;
+        const primaryColor = document.getElementById('primaryColor').value;
+        const secondaryColor = document.getElementById('secondaryColor').value;
+
+        const response = await fetchWithAuth('/company/branding', {
+          method: 'PUT',
+          body: JSON.stringify({
+            logoUrl,
+            primaryColor,
+            secondaryColor
+          })
+        });
+
+        if (response.ok) {
+          alert('Branding updated successfully');
+          window.location.reload(); // Reload page to apply new branding
+        } else {
+          alert('Failed to update branding');
+        }
+      });
+
+      async function fetchWithAuth(url, options) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.log('No token found, redirecting to login.');
+            window.location.href = 'login.html';
+            return null;
+        }
+
+        const isTokenExpired = (token) => {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return payload.exp * 1000 < Date.now();
+        };
+
+        if (isTokenExpired(token)) {
+            console.log('Token expired, removing token and redirecting to login.');
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+            return null;
+        }
+
+        options.headers = {
+            ...options.headers,
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        };
+
+        try {
+            const response = await fetch(url, options);
+            if (response.status === 401) {
+            console.log('Unauthorized response, removing token and redirecting to login.');
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+            return null;
+            }
+            return response;
+        } catch (error) {
+            console.error('Fetch error:', error);
+            alert('Failed to fetch data. Please try again later.');
+            return null;
+        }
+        }
+
+      // Fetch and apply branding on page load
+      (async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/company/details', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const company = await response.json();
+          document.getElementById('companyName').value = company.name;
+          document.getElementById('companyEmail').value = company.email;
+          document.getElementById('logoUrl').value = company.branding.logoUrl;
+          document.getElementById('primaryColor').value = company.branding.primaryColor;
+          document.getElementById('secondaryColor').value = company.branding.secondaryColor;
+
+          // Apply initial branding colors
+          document.documentElement.style.setProperty('--primary-color', company.branding.primaryColor);
+          document.documentElement.style.setProperty('--secondary-color', company.branding.secondaryColor);
+        } else {
+          console.error('Failed to load company details');
+        }
+      })();
+    });
+  </script>
+</body>
+</html>
