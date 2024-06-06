@@ -163,13 +163,9 @@
         const company = await response.json();
 
         // Set initial values for inputs
-        document.getElementById('logoUrl').value = company.branding.logoUrl;
-        document.getElementById('primaryColor').value = company.branding.primaryColor;
-        document.getElementById('secondaryColor').value = company.branding.secondaryColor;
-        document.getElementById('backgroundColor').value = company.branding.backgroundColor || company.branding.primaryColor;
-        document.getElementById('textColor').value = company.branding.textColor || company.branding.secondaryColor;
-        document.getElementById('buttonBackgroundColor').value = company.branding.buttonBackgroundColor || company.branding.secondaryColor;
-        document.getElementById('buttonTextColor').value = company.branding.buttonTextColor || company.branding.primaryColor;
+        setBrandingFields(company.branding);
+
+        console.log('Initial branding data loaded:', company.branding);
 
         // Apply initial branding colors
         applyBranding(company.branding);
@@ -178,40 +174,34 @@
         const inputs = document.querySelectorAll('.form-control');
         inputs.forEach(input => {
           input.addEventListener('input', () => {
-            const branding = {
-              logoUrl: document.getElementById('logoUrl').value,
-              primaryColor: document.getElementById('primaryColor').value,
-              secondaryColor: document.getElementById('secondaryColor').value,
-              backgroundColor: document.getElementById('backgroundColor').value || document.getElementById('primaryColor').value,
-              textColor: document.getElementById('textColor').value || document.getElementById('secondaryColor').value,
-              buttonBackgroundColor: document.getElementById('buttonBackgroundColor').value || document.getElementById('secondaryColor').value,
-              buttonTextColor: document.getElementById('buttonTextColor').value || document.getElementById('primaryColor').value
-            };
+            const branding = getBrandingFields();
+            console.log('Real-time branding preview:', branding);
             applyBranding(branding);
           });
         });
 
         // Save styling
         document.getElementById('saveStyling').addEventListener('click', async () => {
-          const branding = {
-            logoUrl: document.getElementById('logoUrl').value,
-            primaryColor: document.getElementById('primaryColor').value,
-            secondaryColor: document.getElementById('secondaryColor').value,
-            backgroundColor: document.getElementById('backgroundColor').value || document.getElementById('primaryColor').value,
-            textColor: document.getElementById('textColor').value || document.getElementById('secondaryColor').value,
-            buttonBackgroundColor: document.getElementById('buttonBackgroundColor').value || document.getElementById('secondaryColor').value,
-            buttonTextColor: document.getElementById('buttonTextColor').value || document.getElementById('primaryColor').value
-          };
+          const branding = getBrandingFields();
+
+          console.log('Sending branding data to server:', branding);
 
           const response = await fetchWithAuth('/company/branding', {
             method: 'PUT',
             body: JSON.stringify(branding)
           });
 
-          if (response && response.ok) {
-            alert('Branding updated successfully');
-            // Reload the page to apply the new styles
-            location.reload();
+          if (response) {
+            const result = await response.json();
+            console.log('Server response:', result);
+
+            if (response.ok) {
+              alert('Branding updated successfully');
+              // Reload the page to apply the new styles
+              location.reload();
+            } else {
+              alert('Failed to update branding: ' + result.message);
+            }
           } else {
             alert('Failed to update branding');
           }
@@ -220,6 +210,28 @@
         console.error('Failed to load company details');
       }
     });
+
+    function setBrandingFields(branding) {
+      document.getElementById('logoUrl').value = branding.logoUrl || '';
+      document.getElementById('primaryColor').value = branding.primaryColor || '#000000';
+      document.getElementById('secondaryColor').value = branding.secondaryColor || '#FFFFFF';
+      document.getElementById('backgroundColor').value = branding.backgroundColor || branding.primaryColor || '#000000';
+      document.getElementById('textColor').value = branding.textColor || branding.secondaryColor || '#FFFFFF';
+      document.getElementById('buttonBackgroundColor').value = branding.buttonBackgroundColor || branding.secondaryColor || '#FFFFFF';
+      document.getElementById('buttonTextColor').value = branding.buttonTextColor || branding.primaryColor || '#000000';
+    }
+
+    function getBrandingFields() {
+      return {
+        logoUrl: document.getElementById('logoUrl').value,
+        primaryColor: document.getElementById('primaryColor').value,
+        secondaryColor: document.getElementById('secondaryColor').value,
+        backgroundColor: document.getElementById('backgroundColor').value || document.getElementById('primaryColor').value,
+        textColor: document.getElementById('textColor').value || document.getElementById('secondaryColor').value,
+        buttonBackgroundColor: document.getElementById('buttonBackgroundColor').value || document.getElementById('secondaryColor').value,
+        buttonTextColor: document.getElementById('buttonTextColor').value || document.getElementById('primaryColor').value
+      };
+    }
 
     function applyBranding(branding) {
       if (branding.logoUrl) {
@@ -294,10 +306,10 @@
       }
     }
 
-    function isTokenExpired(token) {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.exp * 1000 < Date.now();
-    }
+function isTokenExpired(token) {
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  return payload.exp * 1000 < Date.now();
+}
   </script>
 </body>
 </html>

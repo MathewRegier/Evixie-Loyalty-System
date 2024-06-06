@@ -8,7 +8,6 @@
   <link href="styles/combined.css" rel="stylesheet">
   <script src="branding.js" defer></script>
   <script src="common.js" defer></script>
-
 </head>
 <body>
   <div class="container mt-5">
@@ -37,57 +36,57 @@
       </div>
       <button type="submit" class="btn btn-primary btn-block">Register Customer</button>
     </form>
-
-    <script>
-      async function fetchWithAuth(url, options = {}) {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          window.location.href = 'login.html';
-          return;
-        }
-
-        options.headers = {
-          ...options.headers,
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        };
-
-        const response = await fetch(url, options);
-        if (response.status === 401) {
-          localStorage.removeItem('token');
-          window.location.href = 'login.html';
-        }
-        return response;
+    <div id="errorMessage" class="alert alert-danger mt-3" style="display: none;"></div>
+  </div>
+  <script>
+    async function fetchWithAuth(url, options = {}) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
       }
+      options.headers = {
+        ...options.headers,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+      const response = await fetch(url, options);
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = 'login.html';
+      }
+      return response;
+    }
 
-      document.getElementById('registerCustomerForm').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const formData = new FormData(event.target);
-        const customerData = {};
-        formData.forEach((value, key) => {
-          customerData[key] = value;
+    document.getElementById('registerCustomerForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const customerData = {};
+      formData.forEach((value, key) => {
+        customerData[key] = value;
+      });
+
+      try {
+        const response = await fetchWithAuth('/customer/register', {
+          method: 'POST',
+          body: JSON.stringify(customerData)
         });
 
-        try {
-          const response = await fetchWithAuth('/customer/register', {
-            method: 'POST',
-            body: JSON.stringify(customerData)
-          });
-
-          const data = await response.json();
-          if (response.ok) {
-            alert('Customer registered successfully');
-            window.location.href = 'manage_customers_dashboard.html';
-          } else {
-            console.error('Registration failed:', data);
-            alert(data.message);
-          }
-        } catch (error) {
-          console.error('Error during registration:', error);
-          alert('Failed to register customer.');
+        const data = await response.json();
+        if (response.ok) {
+          alert('Customer registered successfully');
+          window.location.href = 'manage_customers_dashboard.html';
+        } else {
+          console.error('Registration failed:', data);
+          const errorMessage = document.getElementById('errorMessage');
+          errorMessage.textContent = data.message || 'Registration failed. Please try again.';
+          errorMessage.style.display = 'block';
         }
-      });
-    </script>
-  </div>
+      } catch (error) {
+        console.error('Error during registration:', error);
+        alert('Failed to register customer.');
+      }
+    });
+  </script>
 </body>
 </html>

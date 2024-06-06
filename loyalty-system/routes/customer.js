@@ -13,7 +13,8 @@ const awardBadge = (customer, badge) => {
 
 // Customer login
 router.post('/login', [
-  body('phoneNumber').notEmpty().withMessage('Phone number is required')
+  body('phoneNumber').notEmpty().withMessage('Phone number is required'),
+  body('companyId').notEmpty().withMessage('Company ID is required')
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -21,18 +22,16 @@ router.post('/login', [
   }
 
   try {
-    const { phoneNumber } = req.body;
-    console.log('Login attempt with phoneNumber:', phoneNumber); // Debug log
+    const { phoneNumber, companyId } = req.body;
 
-    const customer = await Customer.findOne({ phoneNumber });
+    const customer = await Customer.findOne({ phoneNumber, companyId });
     if (!customer) {
       return res.status(404).send({ message: 'Customer not found' });
     }
 
-    console.log('Customer logged in:', customer); // Debug log
-    res.send({ customer });
+    req.session.customerId = customer._id;
+    res.send({ message: 'Logged in successfully' });
   } catch (error) {
-    console.error('Error during login:', error); // Debug log
     res.status(500).send({ message: 'Server error' });
   }
 });
@@ -45,7 +44,6 @@ router.post('/register', authenticateToken, [
   body('phoneNumber').notEmpty().withMessage('Phone Number is required'),
   body('dateOfBirth').isISO8601().withMessage('Valid Date of Birth is required')
 ], async (req, res) => {
-  console.log('Request Body:', req.body); // Debug log
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -53,21 +51,17 @@ router.post('/register', authenticateToken, [
 
   try {
     const { firstName, lastName, email, phoneNumber, dateOfBirth } = req.body;
-    console.log('First Name:', firstName); // Debug log
-    console.log('Last Name:', lastName); // Debug log
-    console.log('Email:', email); // Debug log
-    console.log('Phone Number:', phoneNumber); // Debug log
-    console.log('Date of Birth:', dateOfBirth); // Debug log
-
-    const companyId = req.user.companyId; // Extract companyId from the token
-    console.log('Company ID:', companyId); // Debug log
+    const companyId = req.user.companyId;
 
     const customer = new Customer({ companyId, firstName, lastName, email, phoneNumber, dateOfBirth });
     await customer.save();
     res.status(201).send({ message: 'Customer registered successfully', customer });
   } catch (error) {
-    console.error('Error:', error); // Debug log
-    res.status(400).send(error);
+    if (error.code === 11000) {
+      // Duplicate key error
+      return res.status(400).send({ message: 'Email already exists in the company' });
+    }
+    res.status(500).send({ message: 'Server error', error });
   }
 });
 
@@ -190,23 +184,17 @@ router.get('/leaderboard', authenticateToken, async (req, res) => {
 });
 
 // Get customer data based on JWT token
-router.get('/data', authenticateToken, async (req, res) => {
-  try {
-    console.log('User:', req.user); // Debug log
-    if (req.user.userType !== 'customer') {
-      return res.status(403).send({ message: 'Access denied. Not a customer.' });
-    }
+router.get('/data', (req, res) => {
+  if (!req.session.customerId) {
+    return res.status(403).send({ message: 'Not authenticated' });
+  }
 
-    const customerId = req.user.id; // Assuming the customer ID is in the token
-    const customer = await Customer.findById(customerId);
-    if (!customer) {
+  Customer.findById(req.session.customerId, (err, customer) => {
+    if (err || !customer) {
       return res.status(404).send({ message: 'Customer not found' });
     }
     res.send(customer);
-  } catch (error) {
-    console.error('Server error:', error); // Debug log
-    res.status(500).send({ message: 'Server error' });
-  }
+  });
 });
 
 // Fetch company details

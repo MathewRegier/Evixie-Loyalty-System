@@ -6,7 +6,6 @@
   <title>Customer Dashboard</title>
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <link href="styles/combined.css" rel="stylesheet">
-  <script src="branding.js" defer></script>
 </head>
 <body>
   <div class="container mt-3">
@@ -18,21 +17,24 @@
       <div>Phone: <span id="accountPhone"></span></div>
       <div>Date of Birth: <span id="accountDob"></span></div>
     </div>
-    <div id="expBarContainer" class="exp-bar-container">
-      <div id="expBar" class="exp-bar"></div>
-      <div id="expBarText" class="exp-bar-text">EXP: 0/1000</div>
-    </div>
-    <div class="row">
+    
+    <!-- Points System Section -->
+    <div id="pointsSystemSection" class="row" style="display: none;">
       <div id="pointsInfoCard" class="card">
         <h2>Points</h2>
         <div id="pointsInfo" class="value"></div>
       </div>
+    </div>
+    
+    <!-- Leveling System Section -->
+    <div id="levelingSystemSection" class="row" style="display: none;">
       <div id="levelInfoCard" class="card">
         <h2>Level</h2>
         <div id="levelInfo" class="value"></div>
         <p id="remainingExpInfo"></p>
       </div>
     </div>
+    
     <div class="row">
       <div id="badgesCard" class="card">
         <h2>Badges</h2>
@@ -65,92 +67,68 @@
       document.getElementById('accountPhone').innerText = customerData.phoneNumber;
       document.getElementById('accountDob').innerText = new Date(customerData.dateOfBirth).toLocaleDateString();
 
-      document.getElementById('pointsInfo').innerText = customerData.points;
-
-      let currentExp = customerData.totalPointsEarned;
-      let currentLevel = 1;
-      let expToNextLevel = 0;
-
-      const token = localStorage.getItem('token');
-      if (!token) {
-        window.location.href = 'login.html';
-        return;
-      }
-
-      const isTokenExpired = (token) => {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.exp * 1000 < Date.now();
-      };
-
-      if (isTokenExpired(token)) {
-        localStorage.removeItem('token');
-        window.location.href = 'login.html';
-        return;
-      }
-
       try {
-        const levelingConfigResponse = await fetch(`/company/leveling-config/${customerData.companyId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+        const companyResponse = await fetch(`/company/details/${customerData.companyId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!levelingConfigResponse.ok) {
-          throw new Error('Failed to load leveling configuration.');
-        }
-        const levelingConfig = await levelingConfigResponse.json();
+        const company = await companyResponse.json();
 
-        if (levelingConfig.auto) {
-          let amount = levelingConfig.initialAmount / 2;
-          while (currentExp >= amount) {
-            currentExp -= amount;
-            currentLevel++;
-            amount *= 2;
-          }
-          expToNextLevel = amount - currentExp;
-        } else {
-          for (const config of levelingConfig.manualConfig) {
-            if (currentExp >= config.amount) {
-              currentLevel = config.level;
-              currentExp -= config.amount;
-            } else {
-              expToNextLevel = config.amount - currentExp;
-              break;
+        if (company.systems.includes('Points System')) {
+          document.getElementById('pointsSystemSection').style.display = 'block';
+          document.getElementById('pointsInfo').innerText = customerData.points;
+        }
+
+        if (company.systems.includes('Leveling System')) {
+          document.getElementById('levelingSystemSection').style.display = 'block';
+          let currentExp = customerData.totalPointsEarned;
+          let currentLevel = 1;
+          let expToNextLevel = 0;
+
+          const levelingConfig = company.levelingConfig;
+
+          if (levelingConfig.auto) {
+            let amount = levelingConfig.initialAmount / 2;
+            while (currentExp >= amount) {
+              currentExp -= amount;
+              currentLevel++;
+              amount *= 2;
+            }
+            expToNextLevel = amount - currentExp;
+          } else {
+            for (const config of levelingConfig.manualConfig) {
+              if (currentExp >= config.amount) {
+                currentLevel = config.level;
+                currentExp -= config.amount;
+              } else {
+                expToNextLevel = config.amount - currentExp;
+                break;
+              }
             }
           }
+
+          document.getElementById('levelInfo').innerText = currentLevel;
+          document.getElementById('expBar').style.width = `${(currentExp / expToNextLevel) * 100}%`;
+          document.getElementById('expBarText').innerText = `EXP: ${currentExp}/${expToNextLevel}`;
+          document.getElementById('remainingExpInfo').innerText = `EXP to next level: ${expToNextLevel}`;
         }
 
-        document.getElementById('levelInfo').innerText = currentLevel;
-        document.getElementById('expBar').style.width = `${(currentExp / expToNextLevel) * 100}%`;
-        document.getElementById('expBarText').innerText = `EXP: ${currentExp}/${expToNextLevel}`;
-        document.getElementById('remainingExpInfo').innerText = `EXP to next level: ${expToNextLevel}`;
-      } catch (error) {
-        console.error('Error fetching leveling config:', error);
-        alert('Failed to load leveling configuration.');
-      }
+        const badgesList = document.getElementById('badgesList');
+        customerData.badges.forEach(badge => {
+          const badgeItem = document.createElement('li');
+          badgeItem.className = 'list-group-item';
+          badgeItem.textContent = badge;
+          badgesList.appendChild(badgeItem);
+        });
 
-      const badgesList = document.getElementById('badgesList');
-      customerData.badges.forEach(badge => {
-        const badgeItem = document.createElement('li');
-        badgeItem.className = 'list-group-item';
-        badgeItem.textContent = badge;
-        badgesList.appendChild(badgeItem);
-      });
+        const achievementsList = document.getElementById('achievementsList');
+        customerData.achievements.forEach(achievement => {
+          const achievementItem = document.createElement('li');
+          achievementItem.className = 'list-group-item';
+          achievementItem.textContent = achievement;
+          achievementsList.appendChild(achievementItem);
+        });
 
-      const achievementsList = document.getElementById('achievementsList');
-      customerData.achievements.forEach(achievement => {
-        const achievementItem = document.createElement('li');
-        achievementItem.className = 'list-group-item';
-        achievementItem.textContent = achievement;
-        achievementsList.appendChild(achievementItem);
-      });
-
-      try {
         const rewardsResponse = await fetch(`/reward/company/${customerData.companyId}`);
-        if (!rewardsResponse.ok) {
-          throw new Error('Failed to load rewards.');
-        }
-
         const rewards = await rewardsResponse.json();
         const rewardsList = document.getElementById('rewardsList');
         rewardsList.innerHTML = '';
@@ -167,8 +145,8 @@
           rewardsList.appendChild(rewardItem);
         });
       } catch (error) {
-        console.error('Error fetching rewards:', error);
-        alert('Failed to load rewards.');
+        console.error('Error:', error);
+        alert('Failed to load customer data.');
       }
     });
 

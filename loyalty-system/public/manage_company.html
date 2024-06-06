@@ -64,19 +64,12 @@
           </div>
           <button type="submit" class="btn btn-primary btn-block">Update Branding</button>
         </form>
-        <button id="goToAdvancedStyling" class="btn btn-secondary btn-block mt-3">Advanced Styling</button>
       </div>
     </div>
   </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const goToAdvancedStyling = document.getElementById('goToAdvancedStyling');
-
-      goToAdvancedStyling.addEventListener('click', () => {
-        window.location.href = 'advanced_styling.html';
-      });
-
       const updateBrandingForm = document.getElementById('updateBrandingForm');
 
       updateBrandingForm.addEventListener('submit', async (event) => {

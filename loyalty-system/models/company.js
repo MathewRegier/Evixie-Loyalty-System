@@ -5,6 +5,7 @@ const companySchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   pointsPerDollar: { type: Number, default: 1 },
+  systems: [{ type: String, required: true }],
   levelingConfig: {
     type: {
       auto: { type: Boolean, default: true },

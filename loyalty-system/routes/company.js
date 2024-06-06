@@ -8,13 +8,21 @@ const router = express.Router();
 // Register company
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, password } = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const company = new Company({ name, email, password: hashedPassword });
-        await company.save();
-        res.status(201).send({ message: 'Company registered successfully' });
+      const { name, email, password, systems, pointsPerDollar, levelingConfig, branding } = req.body;
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const company = new Company({
+        name,
+        email,
+        password: hashedPassword,
+        systems,
+        pointsPerDollar: pointsPerDollar || 1,
+        levelingConfig: levelingConfig || { auto: true, initialAmount: 100 },
+        branding: branding || {}
+      });
+      await company.save();
+      res.status(201).json({ message: 'Company registered successfully' });
     } catch (error) {
-        res.status(400).send(error);
+      res.status(500).json({ message: 'Error registering company', error });
     }
 });
 
